@@ -2,8 +2,10 @@ import numpy as np
 import os
 #import bitstring
 import time
-#from bitarray import bitarray
+from bitarray import bitarray
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib.widgets import Slider
 
 class OBJ_data:
     # Contains pixel data from .obj files in a numpy array
@@ -51,6 +53,7 @@ class AVW_data:
     def getImageNum(self):
         return self.image_num
 
+global img_info
 
 def readObj(obj_file):
     # Reads data from .obj file, and returns an OBJ_data class
@@ -59,8 +62,8 @@ def readObj(obj_file):
     #a.fromfile(fp)
     #print(a)
     #print(a.length())
-    np_file_data = np.fromfile(fp,dtype=np.uint8) # This is wrong, should read bit by bit
-    print(np_file_data.shape)
+    np_file_data = np.fromfile(fp,dtype=np.uint16) # This is wrong, should read bit by bit
+    #print(np_file_data.shape)
     obj_data = OBJ_data()
     obj_data.setObjData(np_file_data)
     return obj_data
@@ -103,21 +106,25 @@ def readAVW(avw_file):
 
 
 def main():
-    obj_image = "ICHTest/ICHTest/Object Maps/ICHADAPTII_001_UAH_F_S_AcuteCT.obj"
-    avw_image = "ICHTest/ICHTest/Scans/ICHADAPTII_003_UAH_GMM_24hCT.avw"
+    global img_info
+    obj_image = "ICHTest/ICHTest/Object Maps/ICHADAPTII_014_UAH_MIC_24hCT.obj"
+    avw_image = "ICHTest/ICHTest/Scans/ICHADAPTII_017_UAH_CFC_AcuteCT.avw"
 
     img_info=readAVW(avw_image)
     obj_info=readObj(obj_image)
     np.set_printoptions(threshold=np.nan)
     print(obj_info.getObjData())
 
+    fig = plt.figure()
     plt.ion()
-    plt.show()
 
+    ims=[]
     for i in range(0,img_info.getImageNum()):
-        plt.imshow(img_info.getImageData()[:,:,i])
-        plt.draw()
-        plt.pause(0.1)
+        im=plt.imshow(np.flipud(img_info.getImageData()[:,:,i].transpose()), cmap='gray', vmin=-5, vmax=250)
+        ims.append([im])
+
+    ani = animation.ArtistAnimation(fig, ims, interval=50, blit=False,repeat_delay=1000)
+    plt.show(ims)
 
 
 
