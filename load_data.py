@@ -6,7 +6,6 @@ import pydicom
 import os
 import time
 import pickle
-import psutil
 
 
 class ImageData:
@@ -157,8 +156,7 @@ def main():
     ScanData=loadAllData(all_files)
     #with open('/Users/julianstys/Documents/CMPUT466/Stroke-Project/ScanData','wb') as fp:
     #    pickle.dump(ScanData,fp)
-    process = psutil.Process(os.getpid())
-    print(process.memory_info().rss)
+
     #print(process.get_memory_info()[0])
 
     print("Number of scans: "+str(len(ScanData)))
