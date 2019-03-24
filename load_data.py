@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import pydicom
 import os
 import time
+import pickle
+import psutil
+
 
 class ImageData:
     # Contains labelled and image data from a single ct-scan series
@@ -65,7 +68,8 @@ def readDCM(dcm_files):
             print("Error: Skipping scans and labels from "+dcm_file)
             return -1, []
         num_images += 1
-    return num_images, np.asarray(dcm_data)
+        dcm_return = np.asarray(dcm_data)
+    return num_images, dcm_return.astype(np.uint16)#np.asarray(dcm_data)
 
 def readLabel(lbl_files):
     # Reads label files at lbl_files, returns numpy array of label data
@@ -79,7 +83,7 @@ def readLabel(lbl_files):
         # Need to flip label vertically, then rotate counterclock-wise by 270 degrees
         lbl = np.flipud(lbl)
         lbl = np.rot90(lbl, 3,(0,1))
-    return lbl.shape[2],lbl
+    return lbl.shape[2],lbl.astype(np.uint8)
 
 
 def loadAllData(all_files):
@@ -145,21 +149,27 @@ def main():
     # data_path is the top directory that contains all label and dicom files
     data_path = "/Users/julianstys/Documents/CMPUT466/Stroke-Project/LabelledData"
 
-    # Array of ImageData classes
+    # Array of all label and dcm files
     all_files = []
 
     # Recursively get all files that contain the dcm and label files for a single scan series
     getImagePaths(data_path)
     ScanData=loadAllData(all_files)
+    #with open('/Users/julianstys/Documents/CMPUT466/Stroke-Project/ScanData','wb') as fp:
+    #    pickle.dump(ScanData,fp)
+    process = psutil.Process(os.getpid())
+    print(process.memory_info().rss)
+    #print(process.get_memory_info()[0])
+
     print("Number of scans: "+str(len(ScanData)))
 
     # Plot ct-scan
     fig1, ax1 = plt.subplots()
-    ax1.imshow(ScanData[50].getImageData()[:,:,22]*4,cmap='gray',vmin=-50,vmax=5000)
+    ax1.imshow(ScanData[0].getImageData()[:,:,13],cmap='gray')
 
     # Plot mask
     fig2, ax2 = plt.subplots()
-    ax2.imshow(ScanData[50].getLabelData()[:,:,22],cmap='gray')
+    ax2.imshow(ScanData[0].getLabelData()[:,:,13],cmap='gray')
     plt.pause(5000)
     time.sleep(5000)
 
