@@ -1,13 +1,15 @@
 from net import FCN8
 import numpy as np
 
+num_slices = 1
+
 # load data
-X = [np.zeros((512,512,3)), np.zeros((512,512,3)), np.zeros((512,512,3)),np.zeros((512,512,3))]
+X = [np.zeros((512,512,num_slices)), np.zeros((512,512,num_slices)), np.zeros((512,512,num_slices)),np.zeros((512,512,num_slices))]
 Y = [np.zeros((512,512,1)), np.zeros((512,512,1)), np.zeros((512,512,1)), np.zeros((512,512,1))]
 X, Y = np.array(X) , np.array(Y)
 
 # load model, default input size 512x512
-model = FCN8()
+model = FCN8(image_depth=num_slices)
 model.summary()
 
 # Split between training and testing data
