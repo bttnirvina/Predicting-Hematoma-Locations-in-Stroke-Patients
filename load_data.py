@@ -55,12 +55,23 @@ class ImageData:
     def getNumScans(self):
         return self.num_scans
 
+def removeOuterCircle(dcm_data, image_width=512):
+    img_center = (image_width/2, image_width/2)
+    print(dcm_data.shape)
+    for (index,val) in np.ndenumerate(dcm_data):
+        a = index[0]
+        b = index[1]
+        if sqrt((a-img_center[0])**2+(b-img_center[1])**2) >= img_width/2:
+            dcm_data = dcm_data
+    time.sleep(500)
+
 def readDCM(dcm_files):
     # Reads dcm files at dcm_files, returns numpy array of dicom scan data
     num_images = 0
     dcm_data=[]
     for dcm_file in dcm_files:
         ds = pydicom.dcmread(dcm_file)
+        print(dcm_file)
         try:
             dcm_data.append(ds.pixel_array)
         except:
@@ -68,6 +79,15 @@ def readDCM(dcm_files):
             return -1, []
         num_images += 1
         dcm_return = np.asarray(dcm_data)
+        #dcm_return[dcm_return > 30000]=0
+        #dcm_return = np.sqrt(dcm_data)
+        #dcm_return = dcm_return/65536
+        mean_value = 12000.0
+        #removeOuterCircle(dcm_return,512)
+        dcm_mean = np.mean(dcm_return)
+        #dcm_return = dcm_return*(mean_value/dcm_mean)
+
+        print("average value: "+str(np.mean(dcm_return)))
     return num_images, dcm_return.astype(np.uint16)#np.asarray(dcm_data)
 
 def readLabel(lbl_files):
@@ -101,6 +121,20 @@ def loadAllData(all_files):
                 print("Error: Mismatch between number of labels and scans. Skipping files at "+lbl_files[0])
 
             else:
+                lbl_data_new = np.zeros(lbl_data.shape)
+                i=0
+                while True:
+                #for i in range(0,lbl_data.shape[2]):
+                    if i >= lbl_data.shape[2]:
+                        break
+                    if 1 not in lbl_data[:,:,i]:
+                        num_lbl-=1
+                        lbl_data = np.delete(lbl_data, i, axis=2)
+                        dcm_data = np.delete(dcm_data, i, axis=2)
+                    else:
+                        i+=1
+                print(lbl_data.shape)
+
                 single_image = ImageData()
                 single_image.setLabelData(lbl_data)
                 single_image.setImageData(dcm_data)
@@ -143,10 +177,10 @@ def getImagePaths(dir):
     if img_files != [] and label_files != []:
         all_files.append([img_files,label_files])
 
-def main():
+def load_data():
     global all_files
     # data_path is the top directory that contains all label and dicom files
-    data_path = "/Users/julianstys/Documents/CMPUT466/Stroke-Project/LabelledData"
+    data_path = "E:/CMPUT466/LabelledData/LabelledData"
 
     # Array of all label and dcm files
     all_files = []
@@ -160,16 +194,16 @@ def main():
     #print(process.get_memory_info()[0])
 
     print("Number of scans: "+str(len(ScanData)))
-
+    return ScanData
     # Plot ct-scan
-    fig1, ax1 = plt.subplots()
-    ax1.imshow(ScanData[0].getImageData()[:,:,13],cmap='gray')
+    #fig1, ax1 = plt.subplots()
+    #ax1.imshow(ScanData[0].getImageData()[:,:,13],cmap='gray')
 
     # Plot mask
-    fig2, ax2 = plt.subplots()
-    ax2.imshow(ScanData[0].getLabelData()[:,:,13],cmap='gray')
-    plt.pause(5000)
-    time.sleep(5000)
+    #fig2, ax2 = plt.subplots()
+    #ax2.imshow(ScanData[0].getLabelData()[:,:,13],cmap='gray')
+    #plt.pause(5000)
+    #time.sleep(5000)
 
 
 
